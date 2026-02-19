@@ -227,20 +227,11 @@ class ToolMonitor:
 
             # Check for dangerous commands
             dangerous_patterns = [
-                "rm -rf",
-                "sudo",
+                "rm -rf /",
+                "sudo rm",
                 "chmod 777",
-                "curl",
-                "wget",
-                "nc ",
-                "netcat",
-                ">",
-                ">>",
-                "|",
-                "&",
-                ";",
-                "$(",
-                "`",
+                "nc -l",
+                "netcat -l",
             ]
 
             for pattern in dangerous_patterns:

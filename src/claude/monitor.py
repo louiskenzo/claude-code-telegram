@@ -189,38 +189,6 @@ class ToolMonitor:
                 logger.warning("Tool explicitly disallowed", **violation)
                 return False, f"Tool explicitly disallowed: {tool_name}"
 
-        # Validate file operations
-        if tool_name in [
-            "create_file",
-            "edit_file",
-            "read_file",
-            "Write",
-            "Edit",
-            "Read",
-        ]:
-            file_path = tool_input.get("path") or tool_input.get("file_path")
-            if not file_path:
-                return False, "File path required"
-
-            # Validate path security
-            if self.security_validator:
-                valid, resolved_path, error = self.security_validator.validate_path(
-                    file_path, working_directory
-                )
-
-                if not valid:
-                    violation = {
-                        "type": "invalid_file_path",
-                        "tool_name": tool_name,
-                        "file_path": file_path,
-                        "user_id": user_id,
-                        "working_directory": str(working_directory),
-                        "error": error,
-                    }
-                    self.security_violations.append(violation)
-                    logger.warning("Invalid file path in tool call", **violation)
-                    return False, error
-
         # Validate shell commands
         if tool_name in ["bash", "shell", "Bash"]:
             command = tool_input.get("command", "")

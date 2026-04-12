@@ -361,11 +361,17 @@ async def _handle_show_projects_action(
             )
             return
 
-        # Get directories in approved directory
+        # Get directories from projects_directory (or approved_directory)
+        projects_dir = settings.projects_directory or settings.approved_directory
         projects = []
-        for item in sorted(settings.approved_directory.iterdir()):
+        for item in sorted(projects_dir.iterdir()):
             if item.is_dir() and not item.name.startswith("."):
-                projects.append(item.name)
+                resolved = item.resolve()
+                try:
+                    rel = str(resolved.relative_to(settings.approved_directory))
+                except ValueError:
+                    continue  # skip entries outside approved_directory
+                projects.append((item.name, rel))
 
         if not projects:
             await query.edit_message_text(
@@ -382,10 +388,10 @@ async def _handle_show_projects_action(
             row = []
             for j in range(2):
                 if i + j < len(projects):
-                    project = projects[i + j]
+                    name, rel = projects[i + j]
                     row.append(
                         InlineKeyboardButton(
-                            f"📁 {project}", callback_data=f"cd:{project}"
+                            f"📁 {name}", callback_data=f"cd:{rel}"
                         )
                     )
             keyboard.append(row)
@@ -402,7 +408,7 @@ async def _handle_show_projects_action(
 
         reply_markup = InlineKeyboardMarkup(keyboard)
         project_list = "\n".join(
-            [f"• <code>{escape_html(project)}/</code>" for project in projects]
+            [f"• <code>{escape_html(name)}/</code>" for name, _ in projects]
         )
 
         await query.edit_message_text(

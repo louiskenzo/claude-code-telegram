@@ -45,6 +45,9 @@ class Settings(BaseSettings):
 
     # Security
     approved_directory: Path = Field(..., description="Base directory for projects")
+    projects_directory: Optional[Path] = Field(
+        None, description="Directory listing for /projects (defaults to approved_directory)"
+    )
     allowed_users: Optional[List[int]] = Field(
         None, description="Allowed Telegram user IDs"
     )
@@ -406,6 +409,21 @@ class Settings(BaseSettings):
                 "'mcpServers' must contain at least one server configuration"
             )
         return v  # type: ignore[no-any-return]
+
+    @field_validator("projects_directory", mode="before")
+    @classmethod
+    def validate_projects_directory(cls, v: Any) -> Optional[Path]:
+        """Ensure projects directory exists and is absolute, if set."""
+        if not v:
+            return None
+        if isinstance(v, str):
+            v = Path(v)
+        path = v.resolve()
+        if not path.exists():
+            raise ValueError(f"Projects directory does not exist: {path}")
+        if not path.is_dir():
+            raise ValueError(f"Projects directory is not a directory: {path}")
+        return path
 
     @field_validator("projects_config_path", mode="before")
     @classmethod

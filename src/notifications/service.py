@@ -12,6 +12,7 @@ from telegram import Bot
 from telegram.constants import ParseMode
 from telegram.error import TelegramError
 
+from ..bot.utils.html_format import markdown_to_telegram_html
 from ..events.bus import Event, EventBus
 from ..events.types import AgentResponseEvent
 
@@ -101,7 +102,7 @@ class NotificationService:
 
         try:
             # Split long messages (Telegram limit: 4096 chars)
-            text = event.text
+            text = markdown_to_telegram_html(event.text) if event.parse_mode == "HTML" else event.text
             chunks = self._split_message(text)
 
             for chunk in chunks:
